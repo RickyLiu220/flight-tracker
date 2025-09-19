@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import os
 import parseData
 import saveToDB
-
+import json
 
 load_dotenv("secret.env")
 
@@ -22,28 +22,15 @@ def fetch_messages(queue_url, max_messages, wait_time):
 def process_messages(messages):
     queueurl = queue_url
     for message in messages:
-
         body_dict = json.loads(message['Body'])
-        
+
         itineraries = body_dict['data']['itineraries']
 
+        data = parseData.processGoogleFlightsData(itineraries)
 
-        data = parseData.processGoogleFlightsData(body_dict)
+        for intin in data:
 
-        for i in range(len(data)):
-            saveToDB.insertDB(data)
-
-
-        """ actual_data = json.loads(message)
-        data = parseData.processGoogleFlightsData(actual_data['Body']['data'])
-        print(data)
-        saveToDB.insertDB(*data)
-
-
-        sqs.delete_message(
-            QueueUrl=queueurl,
-            ReceiptHandle=message['ReceiptHandle']
-        ) """
+            saveToDB.insertDB(intin)
 
 def main():
     while True:

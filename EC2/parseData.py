@@ -1,4 +1,3 @@
-
 def processGoogleFlightsData(raw):
     """
     This method parses the json sent by Google Flights API.
@@ -17,11 +16,12 @@ def processGoogleFlightsData(raw):
     for i in range(len(top_flights)):
         # For the itinerary, we need intin_id, price, origin, and destination
         this_itin = []
-        itinerary = top_flights[i] 
+        itinerary = top_flights[i]
 
         dept = itinerary['flights'][0]['departure_airport']['airport_code']
 
-        arr = itinerary['flights'][len(itinerary['flights'])]['arrival_airport']['airport_code']
+        arr = itinerary['flights'][len(itinerary['flights']) - 1]['arrival_airport']['airport_code']
+
         price = itinerary['price']
         this_itin.append([price, dept, arr])
 
@@ -42,17 +42,17 @@ def processGoogleFlightsData(raw):
             this_flight.append([flight_number, airline, dept_time, arrival_time, origin, dest])
             subflights.append(this_flight)
         #append a list of [this itinerary, [flight1, flight2, ...]]
-        ret.append([this_itin, this_flight])
-    
+        ret.append([this_itin, subflights])
+
     # This is for the other flights
     for i in range(len(other_flights)):
         # For the itinerary, we need intin_id, price, origin, and destination
         this_itin = []
-        itinerary = other_flights[i] 
+        itinerary = other_flights[i]
 
-        dept = itinerary['departure_airport']['airport_code']
+        dept = itinerary['flights'][0]['departure_airport']['airport_code']
 
-        arr = itinerary['arrival_airport']['airport_code']
+        arr = itinerary['flights'][len(itinerary['flights']) - 1]['arrival_airport']['airport_code']
 
         price = itinerary['price']
         this_itin.append([price, dept, arr])
@@ -67,12 +67,12 @@ def processGoogleFlightsData(raw):
 
             flight_number = flight['flight_number']
             airline = flight['airline']
-            dept_time = flight['departure_time']
-            arrival_time = flight['arrival_time']
+            dept_time = flight['departure_airport']['time']
+            arrival_time = flight['arrival_airport']['time']
             origin = flight['departure_airport']['airport_code']
             dest = flight['arrival_airport']['airport_code']
             this_flight.append([flight_number, airline, dept_time, arrival_time, origin, dest])
             subflights.append(this_flight)
         #append a list of [this itinerary, [flight1, flight2, ...]]
-        ret.append([this_itin, this_flight])
+        ret.append([this_itin, subflights])
     return ret

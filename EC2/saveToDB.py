@@ -27,25 +27,35 @@ def insertDB(data):
     Returns:
     Nothing
     """
-    conn = pyscopg2.connect(
+    conn = psycopg2.connect(
         host=DB_HOST,
         database=DB_NAME,
         user=DB_USER,
         password=DB_PASSWORD,
         port=DB_PORT
     )
-
-    print(data[0])
-
-
-    flight_data = (flight_number, airline, departure_time, arrival_time, origin, destination, price)
-
+    curr = data
+    print(curr)
+    if str(curr[0][0][0]).lower() == "unavailable":
+        return
+    flight_data = (curr[0][0][0], curr[0][0][1], curr[0][0][2])
     cursor = conn.cursor()
     insert_query = """
-    insert into FlightData (flight_number, airline, departure_time, arrival_time, origin, destination, price) 
+    insert into itineraries (price, origin, destination)
+    values (%s, %s, %s)
+    returning itinerary_id
+    """
+    cursor.execute(insert_query, flight_data)
+    itinerary_id = cursor.fetchone()[0]
+    insert_flight = """
+    INSERT INTO flights (itinerary_id, flight_number, airline, departure_time, arrival_time, origin, destination)
     values (%s, %s, %s, %s, %s, %s, %s)
     """
-    cursor.execute(insert_query, flights_data)
+    for f in curr[1]:
+        flight_number, airline, dept_time, arrival_time, f_origin, f_dest = f[0]
+        cursor.execute(insert_flight, (
+            itinerary_id, flight_number, airline, dept_time, arrival_time, f_origin, f_dest
+        ))
     conn.commit()
     cursor.close()
     conn.close()
