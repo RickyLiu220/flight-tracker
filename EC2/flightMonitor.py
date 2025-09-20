@@ -31,7 +31,11 @@ def process_messages(messages):
         for intin in data:
 
             saveToDB.insertDB(intin)
-
+            
+        sqs.delete_message(
+            QueueUrl=queueurl,
+            ReceiptHandle=message['ReceiptHandle']
+        )
 def main():
     while True:
         messages = fetch_messages(queue_url, 10, 10)
