@@ -1,13 +1,18 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { LandingPage } from "./components/LandingPage";
 import { Dashboard } from "./components/Dashboard";
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    // Check if user is already logged in (from localStorage)
     const savedUser = localStorage.getItem("user");
     if (savedUser) {
       setUser(JSON.parse(savedUser));
@@ -15,7 +20,7 @@ export default function App() {
     }
   }, []);
 
-  const handleLogin = (userData) => {
+  const handleLogin = (userData: User) => {
     setUser(userData);
     setIsAuthenticated(true);
     localStorage.setItem("user", JSON.stringify(userData));
