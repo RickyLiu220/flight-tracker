@@ -8,3 +8,21 @@ Continuously tracking flights for reasonable prices is a difficult and time-cons
 - Fetch data via Spring Boot backend APIs
 - User Authentication with Google SSO and Firebase
 - Interactive React w/ Tailwind CSS frontend
+## Tech Stack
+- Data Pipeline / Backend Infrastructure:
+  - AWS Lambda
+  - AWS SQS
+  - AWS EC2
+  - AWS RDS
+  - AWS SES
+- Backend:
+  - Spring Boot
+  - Java
+- Frontend:
+  - React
+  - TypeScript
+- Authentication
+  - Firebase
+  - Google Single Sign-On (SSO)
+- APIs / Integration:
+  - Google Flights API
