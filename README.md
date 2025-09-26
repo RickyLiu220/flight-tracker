@@ -26,5 +26,6 @@ Continuously tracking flights for reasonable prices is a difficult and time-cons
   - Google Single Sign-On (SSO)
 - APIs / Integration:
   - Google Flights API
-  
+## Data Pipeline Architecture
+![Architecture Diagram](Images/DataPipelineArch.png)
 
