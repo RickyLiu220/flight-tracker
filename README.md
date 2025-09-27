@@ -28,4 +28,8 @@ Continuously tracking flights for reasonable prices is a difficult and time-cons
   - Google Flights API
 ## Data Pipeline Architecture
 ![Architecture Diagram](Images/DataPipelineArch.png)
+1) Producers: We used AWS Lambda functions to act was producers by fetching data from Flight APIs
+2) SQS: The producers then place the JSONs from the APIs onto an SQS to manage distribution to the EC2s
+3) Consumers: EC2 acted as consumers that took the data, parsed it, and then stored it
+4) RDS: This was our database that stored all our data
 
