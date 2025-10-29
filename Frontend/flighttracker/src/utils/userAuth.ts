@@ -34,6 +34,9 @@ export async function handleLogin(email: string, password: string) {
     console.log("API response data:", response.data);
     localStorage.setItem("token", response.data.token);
     localStorage.setItem("username", response.data.username);
+    localStorage.setItem("id", response.data.id.toString());
+    localStorage.setItem("email", response.data.email);
+    
 
     return mapToUser(response.data);
 
@@ -58,6 +61,11 @@ export async function handleSignUp(
       username,
       password,
     });
+    console.log("API response data:", response.data);
+    localStorage.setItem("token", response.data.token);
+    localStorage.setItem("username", response.data.username);
+    localStorage.setItem("id", response.data.id.toString());
+    localStorage.setItem("email", response.data.email);
     console.log(response.data);
     return response.data;
   } catch (error: any) {

@@ -2,9 +2,11 @@
 import axios from "axios";
 
 interface CreateTrackerRequest {
-  depCity: string;
-  destCity: string;
-  maxCost: number;
+  uid: number;
+  userEmail: string;
+  origin: string;
+  destination: string;
+  maxPrice: number;
 }
 
 /**
@@ -22,12 +24,15 @@ export const createTracker = async (tracker: CreateTrackerRequest) => {
   if (!token) throw new Error("No JWT token found. Please login first.");
 
   try {
+    console.log("hi");
     const response = await axios.post(
-      "http://localhost:8080/api/trackers",
+      "http://localhost:8080/api/trackers/create",
       {
-        depCity: tracker.depCity,
-        destCity: tracker.destCity,
-        maxCost: tracker.maxCost,
+        uid: tracker.uid,
+        userEmail: tracker.userEmail,
+        origin: tracker.origin,
+        destination: tracker.destination,
+        maxPrice: tracker.maxPrice,
       },
       {
         headers: {
@@ -39,7 +44,10 @@ export const createTracker = async (tracker: CreateTrackerRequest) => {
 
     return response.data; // Created tracker
   } catch (error: any) {
-    console.error("Failed to create tracker:", error.response?.data || error.message);
+    console.error(
+      "Failed to create tracker:",
+      error.response?.data || error.message
+    );
     throw error;
   }
 };
@@ -63,7 +71,10 @@ export const deleteTracker = async (trackerId: string) => {
 
     return response.data; // Could be success message or deleted object
   } catch (error: any) {
-    console.error("Failed to delete tracker:", error.response?.data || error.message);
+    console.error(
+      "Failed to delete tracker:",
+      error.response?.data || error.message
+    );
     throw error;
   }
 };

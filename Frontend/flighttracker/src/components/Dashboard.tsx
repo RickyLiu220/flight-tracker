@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription } from "./ui/alert";
 import type { User } from "../utils/userAuth";
+import { createTracker } from "../utils/createTracker";
 
 interface DashboardProps {
   user: User;
@@ -65,24 +66,37 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     localStorage.setItem("flightAlerts", JSON.stringify(alerts));
   }, [alerts]);
 
-  const handleAddAlert = (e: React.FormEvent) => {
+  const handleAddAlert = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!departureCity || !destinationCity || !maxPrice) return;
 
-    const newAlert: FlightAlert = {
-      id: Date.now().toString(),
-      depCity: departureCity,
-      destCity: destinationCity,
+    const newTracker = {
+      uid: Number(localStorage.getItem("id")), // user ID from localStorage
+      userEmail: localStorage.getItem("email") || "", // user email from localStorage
+      origin: departureCity,
+      destination: destinationCity,
       maxPrice: parseFloat(maxPrice),
-      createdAt: new Date().toISOString(),
     };
 
-    setAlerts([...alerts, newAlert]);
-    setDepartureCity("");
-    setDestinationCity("");
-    setMaxPrice("");
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 3000);
+    try {
+      // Call your backend
+      const savedTracker = await createTracker(newTracker);
+
+      // Add the returned tracker to local state
+      setAlerts([...alerts, savedTracker]);
+
+      // Clear form fields
+      setDepartureCity("");
+      setDestinationCity("");
+      setMaxPrice("");
+
+      // Show success message
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (error: any) {
+      console.error("Failed to add alert:", error);
+      alert(error.response?.data?.message || "Failed to add alert");
+    }
   };
 
   const handleDeleteAlert = (id: string) => {
@@ -174,8 +188,9 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
                       value={maxPrice}
                       onChange={(e) => setMaxPrice(e.target.value)}
                       placeholder="Enter maximum price"
-                      min="1"
-                      step="1"
+                      min=".01"
+                      step=".01"
+                      pattern="^\d+(\.\d{1,2})?$"
                       required
                     />
                   </div>
