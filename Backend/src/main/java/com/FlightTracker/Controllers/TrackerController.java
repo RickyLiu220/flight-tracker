@@ -10,7 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/trackers")
-@CrossOrigin()
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class TrackerController {
 
     private final TrackerService trackerService;

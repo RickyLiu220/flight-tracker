@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription } from "./ui/alert";
 import type { User } from "../utils/userAuth";
-import { createTracker } from "../utils/createTracker";
+import { createTracker, getUserTrackers } from "../utils/createTracker";
 
 interface DashboardProps {
   user: User;
@@ -37,8 +37,8 @@ interface DashboardProps {
 
 interface FlightAlert {
   id: string;
-  depCity: string;
-  destCity: string;
+  origin: string;
+  destination: string;
   maxPrice: number;
   createdAt: string;
 }
@@ -53,12 +53,18 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
   const [maxPrice, setMaxPrice] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Load saved alerts from localStorage
+  // Load saved alerts from DB
   useEffect(() => {
-    const savedAlerts = localStorage.getItem("flightAlerts");
-    if (savedAlerts) {
-      setAlerts(JSON.parse(savedAlerts));
-    }
+    const fetchAlerts = async () => {
+      try {
+        const userTrackers = await getUserTrackers();
+        setAlerts(userTrackers);
+      } catch (error) {
+        console.error("Failed to fetch alerts:", error);
+      }
+    };
+
+    fetchAlerts();
   }, []);
 
   // Save alerts to localStorage whenever alerts change
@@ -257,7 +263,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
                           </div>
                           <div>
                             <h4 className="font-medium text-gray-900">
-                              {alert.depCity} &rarr; {alert.destCity}
+                              {alert.origin} &rarr; {alert.destination}
                             </h4>
                             <p className="text-sm text-gray-500">
                               Alert when price drops below ${alert.maxPrice}
