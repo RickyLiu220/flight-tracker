@@ -28,7 +28,11 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription } from "./ui/alert";
 import type { User } from "../utils/userAuth";
-import { createTracker, getUserTrackers } from "../utils/createTracker";
+import {
+  createTracker,
+  getUserTrackers,
+  deleteTracker,
+} from "../utils/createTracker";
 
 interface DashboardProps {
   user: User;
@@ -85,7 +89,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     };
 
     try {
-      // Call your backend
+      // Call backend
       const savedTracker = await createTracker(newTracker);
 
       // Add the returned tracker to local state
@@ -105,8 +109,17 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     }
   };
 
-  const handleDeleteAlert = (id: string) => {
-    setAlerts(alerts.filter((alert) => alert.id !== id));
+  const handleDeleteAlert = async (id: string) => {
+    try {
+      // Optimistically update UI first
+      setAlerts((prev) => prev.filter((alert) => alert.id !== id));
+
+      // Then tell backend to delete it
+      await deleteTracker(id);
+    } catch (error) {
+      console.error("Failed to delete tracker:", error);
+      // Optionally re-fetch from backend to sync state if deletion fails
+    }
   };
 
   return (

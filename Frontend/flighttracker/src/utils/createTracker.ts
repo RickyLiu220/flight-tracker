@@ -15,7 +15,6 @@ export interface CreateTrackerRequest {
  */
 export const createTracker = async (tracker: CreateTrackerRequest) => {
   try {
-    console.log("Creating tracker...");
     const response = await axios.post(
       "http://localhost:8080/api/trackers/create",
       {
@@ -76,7 +75,6 @@ export const getUserTrackers = async () => {
       `http://localhost:8080/api/trackers/user/${uid}`,
       { withCredentials: true }
     );
-    console.log(response.data)
     return response.data; // list of trackers
   } catch (error: any) {
     console.error("Failed to fetch user trackers:", error.response?.data || error.message);
