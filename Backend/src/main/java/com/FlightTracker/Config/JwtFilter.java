@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -24,13 +25,32 @@ public class JwtFilter extends OncePerRequestFilter {
     private JWTService jwtService;
 
     @Autowired
+    private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
+
+    @Autowired
     ApplicationContext context;
+
+
+
+    private boolean isOpenEndpoint(HttpServletRequest req) {
+        String path = req.getRequestURI();
+        String method = req.getMethod();
+        if ("OPTIONS".equalsIgnoreCase(method)) return true; // preflight
+        return PATH_MATCHER.match("/api/login", path)
+                || PATH_MATCHER.match("/api/register", path)
+                || PATH_MATCHER.match("/login/oauth2/**", path);
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
+
+        if (isOpenEndpoint(request)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String token = null;
 

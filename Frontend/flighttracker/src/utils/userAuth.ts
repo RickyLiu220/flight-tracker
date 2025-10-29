@@ -3,21 +3,17 @@ import axios from "axios";
 
 
 export interface User {
-  id: number;
   username: string;
   email: string;
 }
 
 interface APILoginResponse {
-  token: string;
-  id: number;
   username: string;
   email: string;
 }
 
 function mapToUser(response: APILoginResponse): User {
   return {
-    id: Number(response.id),
     username: response.username,
     email: response.email,
   };
@@ -27,14 +23,12 @@ function mapToUser(response: APILoginResponse): User {
 
 export async function handleLogin(email: string, password: string) {
   try {
-    const response = await axios.post<APILoginResponse>("http://localhost:8080/api/login", {
+    const response = await axios.post<APILoginResponse>("/api/login", {
       email,
       password,
     });
-    localStorage.setItem("token", response.data.token);
+    console.log("API response data:", response.data);
     localStorage.setItem("username", response.data.username);
-    localStorage.setItem("id", response.data.id.toString());
-    console.log(response.data.id.toString());
     localStorage.setItem("email", response.data.email);
     
 

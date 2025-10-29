@@ -1,6 +1,7 @@
 package com.FlightTracker.Controllers;
 
 import com.FlightTracker.Models.UserPrincipal;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,9 +16,22 @@ import com.FlightTracker.Models.Users;
 import com.FlightTracker.Services.UserService;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true", allowedHeaders = { "Authorization",
-        "Content-Type", "X-Requested-With" }, methods = { RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT,
-                RequestMethod.DELETE, RequestMethod.OPTIONS })
+@CrossOrigin(
+        origins = "http://localhost:5173",
+        allowCredentials = "true",
+        allowedHeaders = {
+            "Authorization",
+            "Content-Type",
+            "X-Requested-With"
+        },
+        methods = {
+            RequestMethod.GET,
+            RequestMethod.POST,
+            RequestMethod.PUT,
+            RequestMethod.DELETE,
+            RequestMethod.OPTIONS
+        }
+)
 @RequestMapping("/api")
 public class UserController {
 
@@ -34,16 +48,21 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Users user) {
+    public ResponseEntity<?> login(@RequestBody Users user, HttpServletResponse response) {
         try {
-            LoginResponse response = service.verify(user);
-            System.out.println(response.getToken());
-            return ResponseEntity.ok(response);
+            LoginResponse loginRes = service.verify(user, response);
+            return ResponseEntity.ok(loginRes);
         } catch (RuntimeException e) {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .body(e.getMessage());
         }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        service.logout(response);
+        return ResponseEntity.ok("Logged out successfully");
     }
 
     @GetMapping("/me")
