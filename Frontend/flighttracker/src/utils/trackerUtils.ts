@@ -46,7 +46,7 @@ export const createTracker = async (tracker: CreateTrackerRequest) => {
  * Delete a flight tracking request by its ID
  * Relies on JWT stored in an HttpOnly cookie.
  */
-export const deleteTracker = async (trackerId: string) => {
+export const deleteTracker = async (trackerId: number) => {
   try {
     const response = await axios.delete(
       `http://localhost:8080/api/trackers/${trackerId}`,
@@ -81,3 +81,24 @@ export const getUserTrackers = async () => {
     throw error;
   }
 };
+
+/**
+ * Update the maxCost allowed for the flight
+ */
+export const updateTrackerPrice = async (id: number, maxPrice: number) => {
+  try {
+    const response = await axios.patch(
+      `http://localhost:8080/api/trackers/${id}/maxPrice?maxPrice=${maxPrice}`,
+      {},
+      {
+        withCredentials: true,
+      }
+    );
+    return response.data; // returns the updated FlightTrackRequest
+  } catch (error: any) {
+    console.error("Failed to update tracker:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+
