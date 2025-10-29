@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { LandingPage } from "./components/LandingPage";
 import { Dashboard } from "./components/Dashboard";
+import axios from "axios";
 
 interface User {
-  id: number;
   username: string;
   email: string;
 }
@@ -57,7 +57,14 @@ export default function App() {
     localStorage.setItem("user", JSON.stringify(userData));
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      const response = await axios.post("http://localhost:8080/api/logout", {}, { withCredentials: true });
+      console.log(response.data)
+    } catch (error: any) {
+      console.log(error)
+    }
+
     setUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem("user");
