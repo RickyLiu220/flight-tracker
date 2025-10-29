@@ -22,7 +22,6 @@ public class TrackerController {
     // ----------------- Create a new tracker -----------------
     @PostMapping("/create")
     public ResponseEntity<?> createTracker(@RequestBody FlightTrackRequest request) {
-        System.out.println(request.getUid());
         try {
             FlightTrackRequest created = trackerService.addRequest(
                     request.getUid(),
@@ -47,6 +46,7 @@ public class TrackerController {
     // ----------------- Get all trackers for a user -----------------
     @GetMapping("/user/{uid}")
     public ResponseEntity<List<FlightTrackRequest>> getUserTrackers(@PathVariable int uid) {
+        System.out.println(uid);
         List<FlightTrackRequest> trackers = trackerService.getUserTrackers(uid);
         return ResponseEntity.ok(trackers);
     }

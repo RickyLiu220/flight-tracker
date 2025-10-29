@@ -57,7 +57,9 @@ interface FlightAlert {
 }
 
 // Mock cities data
-const cities = ["Atlanta, GA", "El Paso, TX"];
+//const cities = ["Atlanta, GA", "El Paso, TX"];
+const arrival_cities = ["New York City, New York"];
+const departure_cities = ["Atlanta, GA"];
 
 export function Dashboard({ user, onLogout }: DashboardProps) {
   const [alerts, setAlerts] = useState<FlightAlert[]>([]);
@@ -218,7 +220,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
                         <SelectValue placeholder="Select your city" />
                       </SelectTrigger>
                       <SelectContent>
-                        {cities.map((city) => (
+                        {departure_cities.map((city) => (
                           <SelectItem key={city} value={city}>
                             {city}
                           </SelectItem>
@@ -237,7 +239,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
                         <SelectValue placeholder="Select your city" />
                       </SelectTrigger>
                       <SelectContent>
-                        {cities.map((city) => (
+                        {arrival_cities.map((city) => (
                           <SelectItem key={city} value={city}>
                             {city}
                           </SelectItem>

@@ -20,6 +20,7 @@ public class TrackerService {
     public FlightTrackRequest addRequest(int uid, String userEmail, String origin, String destination,
             double maxPrice) {
         // Optional: check for duplicate before saving
+        System.out.println(uid);
         if (tRepo.existsByUidAndOriginAndDestination(uid, origin, destination)) {
             throw new IllegalArgumentException("Tracker already exists for this user and route.");
         }
@@ -30,8 +31,6 @@ public class TrackerService {
         request.setOrigin(origin);
         request.setDestination(destination);
         request.setMaxPrice(maxPrice);
-
-        System.out.println("hi");
 
         try {
             return tRepo.save(request);

@@ -12,9 +12,7 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
-
-
-// --- Load current user from backend using cookie ---
+  // --- Load current user from backend using cookie ---
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -26,6 +24,9 @@ export default function App() {
         if (response.ok) {
           const data: User = await response.json();
           setUser(data);
+          localStorage.setItem("id", data.id.toString());
+          localStorage.setItem("email", data.email);
+          localStorage.setItem("username", data.username);
           setIsAuthenticated(true);
         } else {
           setUser(null);
@@ -49,8 +50,6 @@ export default function App() {
     }
   }, [user]);
 
-
-
   const handleLogin = (userData: User) => {
     setUser(userData);
     setIsAuthenticated(true);
@@ -64,8 +63,6 @@ export default function App() {
     localStorage.removeItem("flightAlerts");
   };
 
-
-  
   if (isAuthenticated && user) {
     return <Dashboard user={user} onLogout={handleLogout} />;
   }

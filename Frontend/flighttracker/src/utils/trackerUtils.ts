@@ -70,6 +70,7 @@ export const deleteTracker = async (trackerId: number) => {
  */
 export const getUserTrackers = async () => {
   const uid = localStorage.getItem("id");
+  console.log(uid);
   try {
     const response = await axios.get(
       `http://localhost:8080/api/trackers/user/${uid}`,
