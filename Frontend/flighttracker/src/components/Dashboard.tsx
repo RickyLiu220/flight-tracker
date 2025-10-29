@@ -25,10 +25,23 @@ import {
   Bell,
   MapPin,
   DollarSign,
+  ChevronUp,
+  ChevronDown,
+  Edit,
 } from "lucide-react";
 import { Alert, AlertDescription } from "./ui/alert";
 import type { User } from "../utils/userAuth";
-import { createTracker } from "../utils/createTracker";
+import {
+  createTracker,
+  getUserTrackers,
+  deleteTracker,
+  updateTrackerPrice,
+} from "../utils/trackerUtils";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "./ui/collapsible";
 
 interface DashboardProps {
   user: User;
@@ -36,9 +49,9 @@ interface DashboardProps {
 }
 
 interface FlightAlert {
-  id: string;
-  depCity: string;
-  destCity: string;
+  id: number;
+  origin: string;
+  destination: string;
   maxPrice: number;
   createdAt: string;
 }
@@ -52,13 +65,22 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
   const [destinationCity, setDestinationCity] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showFail, setShowFail] = useState(false);
+  const [expandedAlertId, setExpandedAlertId] = useState<number | null>(null);
+  const [editPrice, setEditPrice] = useState<{ [key: string]: string }>({});
 
-  // Load saved alerts from localStorage
+  // Load saved alerts from DB
   useEffect(() => {
-    const savedAlerts = localStorage.getItem("flightAlerts");
-    if (savedAlerts) {
-      setAlerts(JSON.parse(savedAlerts));
-    }
+    const fetchAlerts = async () => {
+      try {
+        const userTrackers = await getUserTrackers();
+        setAlerts(userTrackers);
+      } catch (error) {
+        console.error("Failed to fetch alerts:", error);
+      }
+    };
+
+    fetchAlerts();
   }, []);
 
   // Save alerts to localStorage whenever alerts change
@@ -79,7 +101,7 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
     };
 
     try {
-      // Call your backend
+      // Call backend
       const savedTracker = await createTracker(newTracker);
 
       // Add the returned tracker to local state
@@ -92,15 +114,59 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
 
       // Show success message
       setShowSuccess(true);
+      setShowFail(false);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error: any) {
       console.error("Failed to add alert:", error);
-      alert(error.response?.data?.message || "Failed to add alert");
+      setShowFail(true);
     }
   };
 
-  const handleDeleteAlert = (id: string) => {
-    setAlerts(alerts.filter((alert) => alert.id !== id));
+  const handleDeleteAlert = async (id: number) => {
+    try {
+      // Optimistically update UI first
+      setAlerts((prev) => prev.filter((alert) => alert.id !== id));
+
+      // Then tell backend to delete it
+      await deleteTracker(id);
+    } catch (error) {
+      console.error("Failed to delete tracker:", error);
+      // Optionally re-fetch from backend to sync state if deletion fails
+    }
+  };
+
+  const handleUpdateAlert = async (id: number) => {
+    const newPrice = editPrice[id];
+    if (!newPrice || parseFloat(newPrice) <= 0) return;
+
+    try {
+      // 1️⃣ Update the backend
+      const updated = await updateTrackerPrice(id, parseFloat(newPrice));
+
+      // 2️⃣ Update local state
+      const updatedAlerts = alerts.map((alert) =>
+        alert.id === id ? { ...alert, maxPrice: updated.maxPrice } : alert
+      );
+      setAlerts(updatedAlerts);
+
+      // 3️⃣ Update localStorage
+      localStorage.setItem("flightAlerts", JSON.stringify(updatedAlerts));
+
+      // 4️⃣ Reset the edit UI
+      setExpandedAlertId(null);
+      setEditPrice({ ...editPrice, [id]: "" });
+    } catch (err) {
+      console.error("Failed to update tracker:", err);
+    }
+  };
+
+  const toggleAlert = (id: number, currentPrice: number) => {
+    if (expandedAlertId === id) {
+      setExpandedAlertId(null);
+    } else {
+      setExpandedAlertId(id);
+      setEditPrice({ ...editPrice, [id]: currentPrice.toString() });
+    }
   };
 
   return (
@@ -214,10 +280,19 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
                     </AlertDescription>
                   </Alert>
                 )}
+
+                {showFail && (
+                  <Alert className="mt-4 border-red-200 bg-red-50">
+                    <Bell className="h-4 w-4" />
+                    <AlertDescription className="text-red-800">
+                      You are already tracking {destinationCity} {" \u2192 "}
+                      {departureCity}
+                    </AlertDescription>
+                  </Alert>
+                )}
               </CardContent>
             </Card>
           </div>
-
           {/* Active Alerts */}
           <div className="lg:col-span-2">
             <Card>
@@ -247,38 +322,107 @@ export function Dashboard({ user, onLogout }: DashboardProps) {
                 ) : (
                   <div className="space-y-4">
                     {alerts.map((alert) => (
-                      <div
+                      <Collapsible
                         key={alert.id}
-                        className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+                        open={expandedAlertId === alert.id}
+                        onOpenChange={() =>
+                          toggleAlert(alert.id, alert.maxPrice)
+                        }
                       >
-                        <div className="flex items-center space-x-4">
-                          <div className="bg-blue-100 p-2 rounded-full">
-                            <MapPin className="h-4 w-4 text-blue-600" />
-                          </div>
-                          <div>
-                            <h4 className="font-medium text-gray-900">
-                              {alert.depCity} &rarr; {alert.destCity}
-                            </h4>
-                            <p className="text-sm text-gray-500">
-                              Alert when price drops below ${alert.maxPrice}
-                            </p>
-                          </div>
+                        <div className="border border-gray-200 rounded-lg overflow-hidden">
+                          <CollapsibleTrigger asChild>
+                            <div className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer">
+                              <div className="flex items-center space-x-4">
+                                <div className="bg-blue-100 p-2 rounded-full">
+                                  <MapPin className="h-4 w-4 text-blue-600" />
+                                </div>
+                                <div>
+                                  <h4 className="font-medium text-gray-900">
+                                    {alert.origin} &rarr; {alert.destination}
+                                  </h4>
+                                  <p className="text-sm text-gray-500">
+                                    Alert when price drops below $
+                                    {alert.maxPrice}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                                  <DollarSign className="h-3 w-3 mr-1" />$
+                                  {alert.maxPrice}
+                                </Badge>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteAlert(alert.id);
+                                  }}
+                                  className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                                {expandedAlertId === alert.id ? (
+                                  <ChevronUp className="h-4 w-4 text-gray-400" />
+                                ) : (
+                                  <ChevronDown className="h-4 w-4 text-gray-400" />
+                                )}
+                              </div>
+                            </div>
+                          </CollapsibleTrigger>
+
+                          <CollapsibleContent>
+                            <div className="px-4 pb-4 pt-4 bg-gray-50 border-t border-gray-200">
+                              <div className="flex items-end space-x-2 mb-2">
+                                <Edit className="h-4 w-4 text-blue-600" />
+                                <span className="text-sm font-medium text-gray-700">
+                                  Update Maximum Price
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <div className="flex-1">
+                                  <Label
+                                    htmlFor={`edit-price-${alert.id}`}
+                                    className="text-xs text-gray-600"
+                                  >
+                                    New Maximum Price ($)
+                                  </Label>
+                                  <div className="flex items-center space-x-2">
+                                    <Input
+                                      id={`edit-price-${alert.id}`}
+                                      type="number"
+                                      value={editPrice[alert.id] || ""}
+                                      onChange={(e) =>
+                                        setEditPrice({
+                                          ...editPrice,
+                                          [alert.id]: e.target.value,
+                                        })
+                                      }
+                                      placeholder="Enter new price"
+                                      min="1"
+                                      step="1"
+                                      className="mt-1"
+                                    />
+                                    <Button
+                                      onClick={() =>
+                                        handleUpdateAlert(alert.id)
+                                      }
+                                      disabled={
+                                        !editPrice[alert.id] ||
+                                        parseFloat(editPrice[alert.id]) <= 0
+                                      }
+                                      size="sm"
+                                      className="mb-0"
+                                    >
+                                      Update
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </CollapsibleContent>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-                            <DollarSign className="h-3 w-3 mr-1" />$
-                            {alert.maxPrice}
-                          </Badge>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteAlert(alert.id)}
-                            className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
+                      </Collapsible>
                     ))}
                   </div>
                 )}

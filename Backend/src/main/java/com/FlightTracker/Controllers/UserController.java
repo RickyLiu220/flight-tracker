@@ -70,7 +70,7 @@ public class UserController {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        LoginResponse response = service.getCurrentUser(principal); // see service below
+        LoginResponse response = service.getCurrentUser(principal);
         return ResponseEntity.ok(response);
     }
 
