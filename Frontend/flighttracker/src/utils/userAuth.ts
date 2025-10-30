@@ -23,10 +23,11 @@ function mapToUser(response: APILoginResponse): User {
 
 export async function handleLogin(email: string, password: string) {
   try {
-    const response = await axios.post<APILoginResponse>("/api/login", {
-      email,
-      password,
-    });
+    const response = await axios.post<APILoginResponse>(
+      "http://localhost:8080/api/login",
+      { email, password },
+      { withCredentials: true } // include JWT cookies
+    );    
     console.log("API response data:", response.data);
     localStorage.setItem("username", response.data.username);
     localStorage.setItem("email", response.data.email);
@@ -57,7 +58,6 @@ export async function handleSignUp(
     });
     localStorage.setItem("token", response.data.token);
     localStorage.setItem("username", response.data.username);
-    localStorage.setItem("id", response.data.id.toString());
     localStorage.setItem("email", response.data.email);
     return response.data;
   } catch (error: any) {

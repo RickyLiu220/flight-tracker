@@ -16,22 +16,18 @@ import com.FlightTracker.Models.Users;
 import com.FlightTracker.Services.UserService;
 
 @RestController
-@CrossOrigin(
-        origins = "http://localhost:5173",
-        allowCredentials = "true",
-        allowedHeaders = {
-            "Authorization",
-            "Content-Type",
-            "X-Requested-With"
-        },
-        methods = {
-            RequestMethod.GET,
-            RequestMethod.POST,
-            RequestMethod.PUT,
-            RequestMethod.DELETE,
-            RequestMethod.OPTIONS
-        }
-)
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true", allowedHeaders = {
+        "Authorization",
+        "Content-Type",
+        "X-Requested-With"
+}, methods = {
+        RequestMethod.GET,
+        RequestMethod.POST,
+        RequestMethod.PUT,
+        RequestMethod.DELETE,
+        RequestMethod.OPTIONS,
+        RequestMethod.PATCH
+})
 @RequestMapping("/api")
 public class UserController {
 
@@ -49,8 +45,10 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Users user, HttpServletResponse response) {
+        System.out.println(user);
         try {
             LoginResponse loginRes = service.verify(user, response);
+            System.out.println(loginRes);
             return ResponseEntity.ok(loginRes);
         } catch (RuntimeException e) {
             return ResponseEntity

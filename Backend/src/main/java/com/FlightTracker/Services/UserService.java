@@ -20,7 +20,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
 
-
 @Service
 public class UserService {
 
@@ -29,15 +28,12 @@ public class UserService {
     private final UserRepo userRepo;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
-
-
     @Autowired
     public UserService(JWTService jwtService, AuthenticationManager auth, UserRepo userRepo) {
         this.jwtService = jwtService;
         this.authManager = auth;
         this.userRepo = userRepo;
     }
-
 
     public Users register(Users user) {
         user.setPassword(encoder.encode(user.getPassword()));
@@ -50,7 +46,7 @@ public class UserService {
 
         Users person = userRepo.findByEmail(user.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
+        System.out.println(person.getId());
         String token = jwtService.generateToken(person.getId());
         ResponseCookie cookie = ResponseCookie.from("APP_ACCESS_TOKEN", token)
                 .httpOnly(true)

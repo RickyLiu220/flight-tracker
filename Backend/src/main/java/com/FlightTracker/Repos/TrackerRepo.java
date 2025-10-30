@@ -9,8 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 @Repository
 public interface TrackerRepo extends JpaRepository<FlightTrackRequest, Long> {
-    boolean existsByUidAndOriginAndDestination(int uid, String origin, String destination);
+    boolean existsByUidAndOriginAndDestination(Long uid, String origin, String destination);
 
-    List<FlightTrackRequest> findByUid(int uid);
+    List<FlightTrackRequest> findByUid(Long uid);
 
 }

@@ -49,7 +49,7 @@ export const createTracker = async (tracker: CreateTrackerRequest) => {
 export const deleteTracker = async (trackerId: number) => {
   try {
     const response = await axios.delete(
-      `http://localhost:8080/api/trackers/${trackerId}`,
+      `http://localhost:8080/api/trackers/delete/${trackerId}`,
       {
         withCredentials: true, // <-- send cookies automatically
       }
@@ -69,11 +69,9 @@ export const deleteTracker = async (trackerId: number) => {
  * Fetch all trackers for a specific user
  */
 export const getUserTrackers = async () => {
-  const uid = localStorage.getItem("id");
-  console.log(uid);
   try {
     const response = await axios.get(
-      `http://localhost:8080/api/trackers/user/${uid}`,
+      `http://localhost:8080/api/trackers/get`,
       { withCredentials: true }
     );
     return response.data; // list of trackers
@@ -87,13 +85,15 @@ export const getUserTrackers = async () => {
  * Update the maxCost allowed for the flight
  */
 export const updateTrackerPrice = async (id: number, maxPrice: number) => {
+  console.log(id);
+  console.log(maxPrice);
   try {
-    const response = await axios.patch(
-      `http://localhost:8080/api/trackers/${id}/maxPrice?maxPrice=${maxPrice}`,
-      {},
-      {
-        withCredentials: true,
-      }
+    const response = await axios.put(
+      `http://localhost:8080/api/trackers/maxPrice/${id}`,
+      { 
+        maxPrice
+      },
+      { withCredentials: true }
     );
     return response.data; // returns the updated FlightTrackRequest
   } catch (error: any) {

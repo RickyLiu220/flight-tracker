@@ -2,8 +2,13 @@ package com.FlightTracker.Services;
 
 import com.FlightTracker.Repos.TrackerRepo;
 import com.FlightTracker.Models.FlightTrackRequest;
+import com.FlightTracker.Models.Users;
+import com.FlightTracker.Models.UserPrincipal;
+
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.Authentication;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 
@@ -17,16 +22,18 @@ public class TrackerService {
     }
 
     // Add a new flight tracking request
-    public FlightTrackRequest addRequest(int uid, String userEmail, String origin, String destination,
+    public FlightTrackRequest addRequest(String userEmail, String origin, String destination,
             double maxPrice) {
-        // Optional: check for duplicate before saving
-        System.out.println(uid);
-        if (tRepo.existsByUidAndOriginAndDestination(uid, origin, destination)) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        Users user = up.getUser();
+        Long userId = user.getId();
+        if (tRepo.existsByUidAndOriginAndDestination(userId, origin, destination)) {
             throw new IllegalArgumentException("Tracker already exists for this user and route.");
         }
 
         FlightTrackRequest request = new FlightTrackRequest();
-        request.setUid(uid);
+        request.setUid(userId);
         request.setUserEmail(userEmail);
         request.setOrigin(origin);
         request.setDestination(destination);
@@ -41,17 +48,24 @@ public class TrackerService {
     }
 
     // Delete a flight tracking request by ID
-    public void deleteRequest(Long id) {
-        tRepo.deleteById(id);
+    public void deleteRequest(Long trackerId) {
+
+        tRepo.deleteById(trackerId);
     }
 
     // Get all trackers for a user
-    public List<FlightTrackRequest> getUserTrackers(int uid) {
-        return tRepo.findByUid(uid);
+    public List<FlightTrackRequest> getUserTrackers() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserPrincipal up = (UserPrincipal) authentication.getPrincipal();
+        Users user = up.getUser();
+        Long userId = user.getId();
+
+        return tRepo.findByUid(userId);
     }
 
-    public FlightTrackRequest updateMaxPrice(Long id, double newMaxPrice) {
-        FlightTrackRequest request = tRepo.findById(id)
+    public FlightTrackRequest updateMaxPrice(long trackerId, double newMaxPrice) {
+
+        FlightTrackRequest request = tRepo.findById(trackerId)
                 .orElseThrow(() -> new IllegalArgumentException("Tracker not found"));
 
         request.setMaxPrice(newMaxPrice);

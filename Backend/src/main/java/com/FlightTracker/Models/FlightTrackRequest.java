@@ -22,7 +22,7 @@ public class FlightTrackRequest {
         private Long id;
 
         @Column(nullable = false)
-        private int uid;
+        private Long uid;
 
         @Column(nullable = false)
         private String userEmail;

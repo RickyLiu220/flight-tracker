@@ -7,10 +7,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/trackers")
-@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true", allowedHeaders = {
+        "Authorization",
+        "Content-Type",
+        "X-Requested-With"
+}, methods = {
+        RequestMethod.GET,
+        RequestMethod.POST,
+        RequestMethod.PUT,
+        RequestMethod.DELETE,
+        RequestMethod.OPTIONS,
+        RequestMethod.PATCH
+})
 public class TrackerController {
 
     private final TrackerService trackerService;
@@ -24,7 +36,6 @@ public class TrackerController {
     public ResponseEntity<?> createTracker(@RequestBody FlightTrackRequest request) {
         try {
             FlightTrackRequest created = trackerService.addRequest(
-                    request.getUid(),
                     request.getUserEmail(),
                     request.getOrigin(),
                     request.getDestination(),
@@ -37,24 +48,36 @@ public class TrackerController {
     }
 
     // ----------------- Delete a tracker by ID -----------------
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteTracker(@PathVariable Long id) {
         trackerService.deleteRequest(id);
         return ResponseEntity.noContent().build();
     }
 
     // ----------------- Get all trackers for a user -----------------
-    @GetMapping("/user/{uid}")
-    public ResponseEntity<List<FlightTrackRequest>> getUserTrackers(@PathVariable int uid) {
-        System.out.println(uid);
-        List<FlightTrackRequest> trackers = trackerService.getUserTrackers(uid);
+    @GetMapping("/get")
+    public ResponseEntity<List<FlightTrackRequest>> getUserTrackers() {
+        List<FlightTrackRequest> trackers = trackerService.getUserTrackers();
         return ResponseEntity.ok(trackers);
     }
 
-    @PatchMapping("/{id}/maxPrice")
+    @PutMapping("/maxPrice/{id}")
     public ResponseEntity<?> updateMaxPrice(
             @PathVariable Long id,
-            @RequestParam double maxPrice) {
+            @RequestBody Map<String, Double> body) {
+
+        // Extract maxPrice from request body
+        Double maxPrice = body.get("maxPrice");
+        System.out.println(maxPrice);
+        if (maxPrice == null) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("Missing maxPrice in request body");
+        }
+
+        System.out.println("Tracker ID: " + id);
+        System.out.println("New maxPrice: " + maxPrice);
+
         try {
             FlightTrackRequest updated = trackerService.updateMaxPrice(id, maxPrice);
             return ResponseEntity.ok(updated);

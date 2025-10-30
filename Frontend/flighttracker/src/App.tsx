@@ -24,7 +24,6 @@ export default function App() {
         if (response.ok) {
           const data: User = await response.json();
           setUser(data);
-          localStorage.setItem("id", data.id.toString());
           localStorage.setItem("email", data.email);
           localStorage.setItem("username", data.username);
           setIsAuthenticated(true);
@@ -58,10 +57,14 @@ export default function App() {
 
   const handleLogout = async () => {
     try {
-      const response = await axios.post("http://localhost:8080/api/logout", {}, { withCredentials: true });
-      console.log(response.data)
+      const response = await axios.post(
+        "http://localhost:8080/api/logout",
+        {},
+        { withCredentials: true }
+      );
+      console.log(response.data);
     } catch (error: any) {
-      console.log(error)
+      console.log(error);
     }
 
     setUser(null);

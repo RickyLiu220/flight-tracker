@@ -22,19 +22,16 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
     private final JWTService jwtService;
     private UserRepo userRepo;
 
-
-
     @Autowired
     public CustomOAuth2SuccessHandler(JWTService jwtService, UserRepo userRepo) {
         this.jwtService = jwtService;
         this.userRepo = userRepo;
     }
 
-
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
-                                        HttpServletResponse response,
-                                        Authentication authentication) throws IOException {
+            HttpServletResponse response,
+            Authentication authentication) throws IOException {
         var principal = authentication.getPrincipal();
 
         String googleID;
@@ -42,14 +39,14 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         String name;
 
         if (principal instanceof org.springframework.security.oauth2.core.oidc.user.OidcUser oidc) {
-            googleID= oidc.getSubject();                        // OIDC stable ID
-            email   = oidc.getEmail();
-            name    = (String) oidc.getAttributes().get("name");
+            googleID = oidc.getSubject(); // OIDC stable ID
+            email = oidc.getEmail();
+            name = (String) oidc.getAttributes().get("name");
         } else {
             var user = (org.springframework.security.oauth2.core.user.OAuth2User) principal;
-            googleID= (String) user.getAttribute("sub");
-            email   = (String) user.getAttribute("email");
-            name    = (String) user.getAttribute("name");
+            googleID = (String) user.getAttribute("sub");
+            email = (String) user.getAttribute("email");
+            name = (String) user.getAttribute("name");
         }
 
         var userOpt = userRepo.findByGoogleID(googleID);
@@ -60,7 +57,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
         Users savedUser = userRepo.saveAndFlush(user); // flush guarantees insert now
         Long userId = savedUser.getId();
-        System.out.println(savedUser);
+        System.out.println(savedUser.getId());
 
         String jwt = jwtService.generateToken(userId);
         // issue short-lived JWT (your app's token) and set HttpOnly cookie
@@ -71,8 +68,6 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
                 .maxAge(Duration.ofMinutes(15))
                 .sameSite("Lax")
                 .build();
-
-
 
         // Use a fragment so the token isn't sent to your server via query/referrer
         response.addHeader("Set-Cookie", cookie.toString());
